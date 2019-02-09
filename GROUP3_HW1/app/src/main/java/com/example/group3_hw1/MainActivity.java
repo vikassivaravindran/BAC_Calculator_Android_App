@@ -1,6 +1,7 @@
 package com.example.group3_hw1;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +16,10 @@ import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.support.v7.app.ActionBar;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     public double genderValue;
     public int drinkSize;
     public double alcoholQuantity;
-    public static double bacLevel;
+    public double bacLevel = 0.00;
     EditText weight_Input;
     RadioGroup alcoholGroup;
     RadioButton alcoholContent;
@@ -35,35 +40,42 @@ public class MainActivity extends AppCompatActivity {
     public static final String message_safe = "You're Safe";
     public static final String message_careful = "Be careful";
     public static final String message_limit = "Over the limit!";
-    static int flagCount = 0;
     int progressBarValue;
     Button resetButton;
     Button saveButton;
     Button addDrinkButton;
     Switch genderSwitch;
     ProgressBar getProgress;
+    boolean status = false;
+    boolean enableaddDrink =false;
+    List<Integer> drinkListSize = new ArrayList<>();
+    List<Double> alcoholContentList = new ArrayList<>();
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayShowHomeEnabled(true);
+        actionBar.setIcon(R.mipmap.drinks);
         setTitle(R.string.app_name);
+
 
         addDrinkButton = findViewById(R.id.add_drink);
         getProgress = findViewById(R.id.progressBar);
         genderSwitch = (Switch) findViewById(R.id.Toggle_Switch);
         saveButton = findViewById(R.id.save_button);
+        weight_Input = findViewById(R.id.weight_Input);
+        resultStatus = findViewById(R.id.result_Value);
+        resultStatus.setBackgroundColor(Color.rgb(0, 128, 0));
+
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                enableaddDrink = true;
 
-                flagCount++;
-                if(flagCount > 1)
-                {
-                    addDrinkButton.performClick();
-                }
-                weight_Input = findViewById(R.id.weight_Input);
                 if(genderSwitch.isChecked()){
                     genderValue = 0.68;
                 }else{
@@ -71,20 +83,28 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (weight_Input.getText().length() == 0) {
                     weight_Input.setError("Please enter a positive weight value");
+                    enableaddDrink = false;
                 } else {
                     try {
                         weight = Double.parseDouble(weight_Input.getText().toString());
+                        Log.d("Weight - Save Button",""+weight);
                         if (weight < 0) {
                             weight_Input.setError("Enter the weight in lbs");
                         }
                     } catch (Exception e) {
                         weight_Input.setError("Enter the weight in lbs");
+                        enableaddDrink = false;
                     }
                 }
+
+                    //addDrinkButton.performClick();
+                    recalculateBac();
+
             }
         });
 
         getAlcoholContent = (SeekBar)findViewById(R.id.seekBar_alcohol);
+        getAlcoholContent.setProgress(5);
         showProgress = findViewById(R.id.show_Progress);
 
         getAlcoholContent.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -107,42 +127,66 @@ public class MainActivity extends AppCompatActivity {
         addDrinkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(enableaddDrink) {
+                    //status = true;
+                    boolean flag = false;
 
-                alcoholGroup = findViewById(R.id.radio_group);
-                int selectedChoice = alcoholGroup.getCheckedRadioButtonId();
-                alcoholContent = (RadioButton) findViewById(selectedChoice);
+                    if (weight_Input.getText().length() == 0) {
+                        weight_Input.setError("Please enter a positive weight value");
+                        flag = true;
+                    } else {
+                        try {
+                            weight = Double.parseDouble(weight_Input.getText().toString());
+                            Log.d("Weight - Add Drink",""+weight);
+                            if (weight < 0) {
+                                weight_Input.setError("Enter the weight in lbs");
+                            }
+                        } catch (Exception e) {
+                            weight_Input.setError("Enter the weight in lbs");
+                            flag = true;
+                        }
+                    }
+                    if (!flag) {
+                        Log.d("Running inside","!flag");
+                        alcoholGroup = findViewById(R.id.radio_group);
+                        int selectedChoice = alcoholGroup.getCheckedRadioButtonId();
+                        alcoholContent = (RadioButton) findViewById(selectedChoice);
 
-                drinkSize = Integer.parseInt(alcoholContent.getText().toString().replace("Oz","").trim());
-                alcoholQuantity = Double.parseDouble(showProgress.getText().toString().replace("%",""));
-
-                Log.d("Gender",""+genderValue);
-                bacLevel = bacLevel + (drinkSize*(alcoholQuantity/100)*bacConstant)/(weight*genderValue);
-                bacLevel = Math.round(bacLevel*100.00)/100.0;
-                BacLevelStatus = findViewById(R.id.Bac_Level);
-
-                resultStatus = findViewById(R.id.result_Status);
-                BacLevelStatus.setText("BAC Level: " + bacLevel);
+                        drinkSize = Integer.parseInt(alcoholContent.getText().toString().replace("Oz", "").trim());
+                        alcoholQuantity = Double.parseDouble(showProgress.getText().toString().replace("%", "").trim());
+                        drinkListSize.add(drinkSize);
+                        alcoholContentList.add(alcoholQuantity);
+                        Log.d("Gender", "" + genderValue);
+                        bacLevel = bacLevel + (drinkSize * (alcoholQuantity / 100) * bacConstant) / (weight * genderValue);
+                        bacLevel = Math.round(bacLevel * 100.00) / 100.0;
+                        BacLevelStatus = findViewById(R.id.Bac_Level);
 
 
-                progressBarValue = (int)((bacLevel*Math.pow(10,4))/100);
-                Log.d("Values are",""+progressBarValue);
-                getProgress.setProgress(progressBarValue);
+                        BacLevelStatus.setText("BAC Level: " + bacLevel);
 
 
-                if(bacLevel <= 0.08) {
-                    resultStatus.setText("Your Staus: "+message_safe);
-                }
-                else if(bacLevel >0.08 && bacLevel < 0.20){
-                    resultStatus.setText("Your Staus: "+message_careful);
-                }
-                else if(bacLevel >= 0.20 && bacLevel < 0.25){
-                    resultStatus.setText("Your Staus: "+message_limit);
-                }
-                else if(bacLevel >= 0.25){
-                    resultStatus.setText("Your Staus: "+message_limit);
-                    Toast.makeText(getApplicationContext(),"No more drinks for you",Toast.LENGTH_SHORT).show();
-                    saveButton.setEnabled(false);
-                    addDrinkButton.setEnabled(false);
+                        progressBarValue = (int) ((bacLevel * Math.pow(10, 4)) / 100);
+                        Log.d("Values are", "" + progressBarValue);
+                        getProgress.setProgress(progressBarValue);
+
+
+                        if (bacLevel <= 0.08) {
+                            resultStatus.setText(message_safe);
+                            resultStatus.setBackgroundColor(Color.rgb(0, 128, 0));
+                        } else if (bacLevel > 0.08 && bacLevel < 0.20) {
+                            resultStatus.setText(message_careful);
+                            resultStatus.setBackgroundColor(Color.rgb(255, 165, 0));
+                        } else if (bacLevel >= 0.20 && bacLevel < 0.25) {
+                            resultStatus.setText(message_limit);
+                            resultStatus.setBackgroundColor(Color.rgb(255, 0, 0));
+                        } else if (bacLevel >= 0.25) {
+                            resultStatus.setText(message_limit);
+                            resultStatus.setBackgroundColor(Color.rgb(255, 0, 0));
+                            Toast.makeText(getApplicationContext(), "No more drinks for you", Toast.LENGTH_SHORT).show();
+                            saveButton.setEnabled(false);
+                            addDrinkButton.setEnabled(false);
+                        }
+                    }
                 }
             }
         });
@@ -151,23 +195,69 @@ public class MainActivity extends AppCompatActivity {
         resetButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(bacLevel == 0.00){
+                    return;
+                }
                 setDefaultValues();
             }
         });
     }
 
+    public void recalculateBac(){
+
+
+        bacLevel = 0.00;
+        Log.d("Weight - Recalculate",""+weight+" "+bacLevel);
+        for(int i=0;i<alcoholContentList.size();i++) {
+            bacLevel = bacLevel + (drinkListSize.get(i) * (alcoholContentList.get(i) / 100) * bacConstant) / (weight * genderValue);
+        }
+        bacLevel = Math.round(bacLevel * 100.00) / 100.0;
+        BacLevelStatus = findViewById(R.id.Bac_Level);
+
+
+
+        BacLevelStatus.setText("BAC Level: " + bacLevel);
+
+
+        progressBarValue = (int) ((bacLevel * Math.pow(10, 4)) / 100);
+        Log.d("Values are", "" + progressBarValue);
+        getProgress.setProgress(progressBarValue);
+
+
+        if (bacLevel <= 0.08) {
+            resultStatus.setText(message_safe);
+            resultStatus.setBackgroundColor(Color.rgb(0, 128, 0));
+        } else if (bacLevel > 0.08 && bacLevel < 0.20) {
+            resultStatus.setText(message_careful);
+            resultStatus.setBackgroundColor(Color.rgb(255, 165, 0));
+        } else if (bacLevel >= 0.20 && bacLevel < 0.25) {
+            resultStatus.setText(message_limit);
+            resultStatus.setBackgroundColor(Color.rgb(255, 0, 0));
+        } else if (bacLevel >= 0.25) {
+            resultStatus.setText(message_limit);
+            resultStatus.setBackgroundColor(Color.rgb(255, 0, 0));
+            Toast.makeText(getApplicationContext(), "No more drinks for you", Toast.LENGTH_SHORT).show();
+            saveButton.setEnabled(false);
+            addDrinkButton.setEnabled(false);
+        }
+
+    }
+
     public void setDefaultValues(){
-        bacLevel = 0;
-        flagCount=0;
+        bacLevel = 0.00;
+        status = false;
         BacLevelStatus.setText(R.string.BAC_Level);
-        resultStatus.setText(R.string.Status_Label);
+        resultStatus.setText(R.string.result_Value);
+        resultStatus.setBackgroundColor(Color.rgb(0,128,0));
         weight_Input.setText("");
         genderSwitch.setChecked(true);
         getProgress.setProgress(0);
         alcoholContent = findViewById(R.id.radioButton4);
         alcoholContent.setChecked(true);
-        getAlcoholContent.setProgress(0);
+        getAlcoholContent.setProgress(5);
         saveButton.setEnabled(true);
         addDrinkButton.setEnabled(true);
+        drinkListSize = new ArrayList<>();
+        alcoholContentList = new ArrayList<>();
     }
 }

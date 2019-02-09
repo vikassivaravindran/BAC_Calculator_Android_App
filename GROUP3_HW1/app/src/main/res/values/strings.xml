@@ -9,9 +9,10 @@
     <string name="Add_Drink">Add Drink</string>
     <string name="Reset_Button">Reset</string>
     <string name="BAC_Level">BAC Level : 0.00</string>
-    <string name="Status_Label">Your Status: You\'re Safe</string>
+    <string name="Status_Label">Your Status: </string>
     <string name="alcohol_percentage">5 %</string>
     <string name="Oz_twelve">12 Oz</string>
     <string name="Oz_Five">5 Oz</string>
     <string name="Oz_One">1 Oz</string>
+    <string name="result_Value">You\'re Safe</string>
 </resources>

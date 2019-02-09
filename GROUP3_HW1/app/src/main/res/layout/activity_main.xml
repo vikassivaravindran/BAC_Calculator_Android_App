@@ -279,6 +279,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:max="25"
+        android:min="5"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -287,7 +288,7 @@
 
     <TextView
         android:id="@+id/result_Status"
-        android:layout_width="324dp"
+        android:layout_width="130dp"
         android:layout_height="39dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
@@ -297,8 +298,26 @@
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.177"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.793" />
+        app:layout_constraintVertical_bias="0.797" />
+
+    <TextView
+        android:id="@+id/result_Value"
+        android:layout_width="161dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/result_Value"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.829"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.812" />
 
 </android.support.constraint.ConstraintLayout>
